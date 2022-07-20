@@ -15,11 +15,11 @@ let satelliteStreets = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/sate
 	accessToken: API_KEY
 });
 
-// DELIVERABLE 3 - ADD ANOTHER TILE LAYER
+// Deliverable 3 - Add dark title layer
 let dark = L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-attribution: 'Map data © <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>',
-    maxZoom: 18,
-    accessToken: API_KEY
+	attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery (c) <a href="https://www.mapbox.com/">Mapbox</a>',
+  maxZoom: 18,
+  accessToken: API_KEY
 });
 
 // Create the map object with center, zoom level and default layer.
@@ -36,13 +36,17 @@ let baseMaps = {
   "Dark": dark
 };
 
-// 1. Add a 2nd layer group for the tectonic plate data.
-let allEarthquakes = new L.LayerGroup();
+// 1. Add a 2nd layer group for the tectonic plate data. // deliverable 1.1
 let tectonicPlates = new L.LayerGroup();
+
+//Add a 3rd layer group for the major earthquake data.
+//deliverable 2.1
+let allEarthquakes = new L.LayerGroup();
 let majorEarthquakes = new L.LayerGroup();
 
 
 // 2. Add a reference to the tectonic plates group to the overlays object.
+//deliverable 1.2 //deliverable 2.2
 let overlays = {
   "Earthquakes": allEarthquakes,
   "Tectonic Plates": tectonicPlates,
@@ -92,6 +96,24 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
   }
 
   // This function determines the radius of the earthquake marker based on its magnitude.
+  function getColor(magnitude) {
+    if (magnitude > 5) {
+      return "#ea2c2c";
+    }
+    if (magnitude > 4) {
+      return "#ea822c";
+    }
+    if (magnitude > 3) {
+      return "#ee9c00";
+    }
+    if (magnitude > 2) {
+      return "#eecc00";
+    }
+    if (magnitude > 1) {
+      return "#d4ee00";
+    }
+    return "#98ee00";
+  }
   // Earthquakes with a magnitude of 0 were being plotted with the wrong radius.
   function getRadius(magnitude) {
     if (magnitude === 0) {
@@ -119,10 +141,12 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geoj
   // Then we add the earthquake layer to our map.
   allEarthquakes.addTo(map);
 
+//deliverable 2.3
 // 3. Retrieve the major earthquake GeoJSON data >4.5 mag for the week.
 d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson").then(function(data) {
 
-  // 4. Use the same style as the earthquake data.
+//deliverable 2.4
+// 4. Use the same style as the earthquake data.
   function styleInfo(feature) {
     return {
       opacity: 1,
@@ -134,20 +158,21 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geoj
       weight: 0.5
     };
   }  
-  
+  //deliverable 2.5
   // 5. Change the color function to use three colors for the major earthquakes based on the magnitude of the earthquake.
   function getColor(magnitude) {
     if (magnitude > 6) {
-      return "#db5a6b";
+      return "yellow";
     }
     if (magnitude > 5) {
-      return "#eecd00";
+      return "red";
     }
     // if (magnitude < 5) {
     //   return "#ee9c00";
-    return "#a7cf55";
+    return "blue";
   }
   
+  //deliverable 2.6  
   // 6. Use the function that determines the radius of the earthquake marker based on its magnitude.
   function getRadius(magnitude) {
     if (magnitude === 0) {
@@ -156,6 +181,7 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geoj
     return magnitude * 4;
   }
   
+  //deliverable 2.7
   // 7. Creating a GeoJSON layer with the retrieved data that adds a circle to the map 
   // sets the style of the circle, and displays the magnitude and location of the earthquake
   //  after the marker has been created and styled.
@@ -169,8 +195,11 @@ d3.json("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geoj
     }
   }).addTo(majorEarthquakes);
 
+  //deliverable 2.8
   // 8. Add the major earthquakes layer to the map.
   majorEarthquakes.addTo(map);
+
+  //deliverable 2.9
   // 9. Close the braces and parentheses for the major earthquake data.
   });
   
@@ -209,14 +238,17 @@ legend.onAdd = function() {
   legend.addTo(map);
 
 
-  // 3. Use d3.json to make a call to get our Tectonic Plate geoJSON data.
-  d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then((data) => {
+//deliverable 1.3
+// 3. Use d3.json to make a call to get our Tectonic Plate geoJSON data.
+// Add the tectonic layer group to the map.
+  tectonicPlates.addTo(map);d3.json("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json").then((data) => {
     console.log(data);  
     L.geoJson(data, {
-      style: {color: "#703606", weight: 3},
-    }).addTo(tectonicPlates); 
+      style: {
+        color: "red",
+        weight: 3},
+    }).addTo(tectonicPlates);
+    tectonicPlates.addTo(map);
+    
   });
-
-  // Add the tectonic layer group to the map.
-  tectonicPlates.addTo(map);
 });
